@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 
 static int compare (void const *a, void const *b)
 {
@@ -81,9 +82,14 @@ PyListObject* fast_wasserstein_gram(
 
                 double norm1 = 0.0;
                 for (l=0; l<u; l++) {
-                    norm1 += abs(v1[l] - v2[l]);
+                    double raw_val = v1[l] - v2[l];
+                    if (isinf(raw_val)) {
+                        norm1 += DBL_MAX;
+                    }
+                    else if (!isnan(raw_val)) {
+                        norm1 += abs(raw_val);
+                    }
                 }
-
                 sw = sw + s * norm1;
                 theta = theta + s;
             }
