@@ -2,7 +2,7 @@
 #include "fwg.h"
 
 static PyObject *
-fwg_call(PyObject *self, PyObject *args)
+fwd_call(PyObject *self, PyObject *args)
 {
 
     static char *kwlist[] = {"embeddings_in", "embeddings_out", "M", NULL};
@@ -11,19 +11,16 @@ fwg_call(PyObject *self, PyObject *args)
     PyListObject* pyo_embeddings_in = PyTuple_GetItem(args, 0);
     PyListObject* pyo_embeddings_out = PyTuple_GetItem(args, 1);
     PyObject* pyo_m = PyTuple_GetItem(args, 2);
-    PyObject* pyo_sigma = PyTuple_GetItem(args, 3);
 
     long m = PyLong_AsLong(pyo_m);
-    double sigma = PyFloat_AsDouble(pyo_sigma);
 
     int n_size = (int) PyList_Size(pyo_embeddings_in);
     int m_size = (int) PyList_Size(pyo_embeddings_out);
 
-    PyListObject* gram = fast_wasserstein_gram(
+    PyListObject* gram = fast_wasserstein_distance(
         pyo_embeddings_in,
         pyo_embeddings_out,
-        m,
-        sigma
+        m
     );
 
     Py_INCREF(gram);
@@ -32,8 +29,8 @@ fwg_call(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef FwgMethods[] = {
-    {"fwg",  fwg_call, METH_VARARGS,
-     "Compute Wasserstein Gram Matrix in an optimized way"},
+    {"fwd",  fwd_call, METH_VARARGS,
+     "Compute Wasserstein Distance Matrix in an optimized way"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

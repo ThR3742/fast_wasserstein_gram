@@ -8,15 +8,22 @@ static int compare (void const *a, void const *b)
 {
    double const *pa = a;
    double const *pb = b;
-   return *pa - *pb;
+
+   if (isinf(*pa)) {
+       return *pa > 0 ? 1 : -1;
+   }
+   if (isinf(*pb)) {
+       return *pb > 0 ? -1 : 1;
+   }
+
+   return *pa < *pb ? -1 : 1;
 }
 
 
-PyListObject* fast_wasserstein_gram(
+PyListObject* fast_wasserstein_distance(
     PyListObject* embeddings_in,
     PyListObject* embeddings_out,
-    int M,
-    double sigma
+    int M
 )
  {
     int n = (int) PyList_Size(embeddings_in);
@@ -35,7 +42,6 @@ PyListObject* fast_wasserstein_gram(
 
         for (j=0; j<m; j++) {
 
-            
             PyListObject* embedding_j = PyList_GetItem(embeddings_out, j);
 
             int size_j = (int) PyList_Size(embedding_j);
@@ -76,9 +82,10 @@ PyListObject* fast_wasserstein_gram(
                 double* v1 = (double *)malloc(u * sizeof(double));
                 double* v2 = (double *)malloc(u * sizeof(double));
                 for (l=0; l<u; l++) {
-                    v1[l] = (vec1_1[l] + vec1_2[l])*theta;
-                    v2[l] = (vec2_1[l] + vec2_2[l])*theta;
+                    v1[l] = vec1_1[l] * cos(theta) + vec1_2[l] * sin(theta);
+                    v2[l] = vec2_1[l] * cos(theta) + vec2_2[l] * sin(theta);
                 }
+
                 qsort(v1, u, sizeof(double), compare);
                 qsort(v2, u, sizeof(double), compare);
 
@@ -89,14 +96,15 @@ PyListObject* fast_wasserstein_gram(
                         norm1 += DBL_MAX;
                     }
                     else if (!isnan(raw_val)) {
-                        norm1 += abs(raw_val);
+                        norm1 += fabs(raw_val);
                     }
                 }
+
                 sw = sw + s * norm1;
                 theta = theta + s;
             }
             
-            double val = exp(-(1 / M_PI) * sw / pow(2 * sigma, 2));
+            double val = (1 / M_PI) * sw;
 
             PyList_SET_ITEM(matrix_line, j, PyFloat_FromDouble(val));
         }
