@@ -3,19 +3,14 @@ import numpy as np
 
 if __name__ == "__main__":
 
-    embeddings_in = [
-        [(2, 3), (4, 2), (5, 6)],
-        [(2, 3), (4, 2), (5, 6), (8, 12)]
-    ]
-    embeddings_out = [
-        [(3, 4), (5, 6)],
-        [(3, 4), (5, 6)],
-        [(3, 4)]
+    embeddings = [
+        [(2.0, 4.0), (4.0, 8.0)],
+        [(1.0, 2.0), (8.0, 20.0), (34.0, 90.0)],
+        [(2.0, 4.0), (4.0, 8.0)]
     ]
 
-    print(embeddings_in)
-    print(embeddings_out)
+    print(embeddings)
 
-    gram = fwg.fwd(embeddings_in, embeddings_out, 3)
+    distances = fwg.fwd(embeddings, embeddings, 50)
 
-    print(np.matrix(gram))
+    print(np.matrix(distances))
