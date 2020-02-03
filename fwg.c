@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <math.h>
 
 PyListObject* fast_wasserstein_gram(
     PyListObject* embeddings_in,
@@ -13,11 +14,7 @@ PyListObject* fast_wasserstein_gram(
 
     PyListObject* gram = PyList_New(n);
 
-    double **arr = (double **)malloc(n * sizeof(double *)); 
-    for (i=0; i<n; i++) 
-         arr[i] = (double *)malloc(m * sizeof(double));
-
-    int j;
+    int j, k;
 
     for (i=0; i<n; i++) {
 
@@ -34,25 +31,42 @@ PyListObject* fast_wasserstein_gram(
 
             int u = size_i + size_j;
 
-            printf("Computing product between %d and %d\n", size_i, size_j);
+            // printf("Computing product between %d and %d\n", size_i, size_j);
 
-            
-            /**
-             * 
-             * 
-             * # logger.info(f"Sliced Wass. Kernel ")
-            u = len(dgm1) + len(dgm2)
-            vec1 = [(0.0, 0.0) for _ in range(u)]
-            vec2 = [(0.0, 0.0) for _ in range(u)]
-            for k, pt1 in enumerate(dgm1):
-                vec1[k] = (pt1[0], pt1[1])
-                vec2[k] = ((pt1[0] + pt1[1]) / 2.0, (pt1[0] + pt1[1]) / 2.0)
-            for k, pt2 in enumerate(dgm2):
-                vec2[k + len(dgm1)] = (pt2[0], pt2[1])
-                vec1[k + len(dgm1)] = ((pt2[0] + pt2[1]) / 2.0, (pt2[0] + pt2[1]) / 2.0)
-            sw = 0
-            theta = -np.pi / 2
-            s = np.pi / M
+            double* vec1_1 = (double *)malloc(u * sizeof(double));
+            double* vec1_2 = (double *)malloc(u * sizeof(double));
+            double* vec2_1 = (double *)malloc(u * sizeof(double));
+            double* vec2_2 = (double *)malloc(u * sizeof(double));
+
+            for (k=0; k<size_i; k++) {
+                PyTupleObject* pt = PyList_GetItem(embedding_i, k);
+                double birth = PyFloat_AS_DOUBLE(PyTuple_GetItem(pt, 0));
+                double death = PyFloat_AS_DOUBLE(PyTuple_GetItem(pt, 1));
+                vec1_1[k] = birth;
+                vec1_2[k] = death;
+                vec2_1[k] = (birth+death)/2.0;
+                vec2_2[k] = (birth+death)/2.0;
+            }
+
+            for (k=0; k<size_j; k++) {
+                PyTupleObject* pt = PyList_GetItem(embedding_j, k);
+                double birth = PyFloat_AS_DOUBLE(PyTuple_GetItem(pt, 0));
+                double death = PyFloat_AS_DOUBLE(PyTuple_GetItem(pt, 1));
+                vec2_1[size_i+k] = birth;
+                vec2_2[size_i+k] = death;
+                vec1_1[size_i+k] = (birth+death)/2.0;
+                vec1_2[size_i+k] = (birth+death)/2.0;
+            }
+
+            double sw = 0;
+            double theta = - M_PI / 2.0;
+            double s = M_PI / M;
+
+            for (k=0; k<M; k++) {
+
+                
+            }
+           /**
             for k in range(M):
                 v1 = [np.dot(pt1, (theta, theta)) for pt1 in vec1]
                 v2 = [np.dot(pt2, (theta, theta)) for pt2 in vec2]
