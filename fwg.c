@@ -39,8 +39,6 @@ PyListObject* fast_wasserstein_gram(
 
             int u = size_i + size_j;
 
-            // printf("[%d, %d] Computing product between %d and %d\n", i, j, size_i, size_j);
-
             double* vec1_1 = (double *)malloc(u * sizeof(double));
             double* vec1_2 = (double *)malloc(u * sizeof(double));
             double* vec2_1 = (double *)malloc(u * sizeof(double));

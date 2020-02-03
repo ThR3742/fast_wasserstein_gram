@@ -19,11 +19,6 @@ fwg_call(PyObject *self, PyObject *args)
     int n_size = (int) PyList_Size(pyo_embeddings_in);
     int m_size = (int) PyList_Size(pyo_embeddings_out);
 
-    printf("[FWG] m=%i\n", m);
-    printf("[FWG] sigma=%f\n", sigma);
-    printf("[FWG] embeddings_in has %d items\n", n_size);
-    printf("[FWG] embeddings_out has %d items\n", m_size);
-
     PyListObject* gram = fast_wasserstein_gram(
         pyo_embeddings_in,
         pyo_embeddings_out,
