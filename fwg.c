@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
+#include <omp.h>
 
 static int compare (void const *a, void const *b)
 {
@@ -32,6 +33,7 @@ PyListObject* fast_wasserstein_distance(
 
     PyListObject* gram = PyList_New(n);
 
+    #pragma omp parallel for
     for (i=0; i<n; i++) {
 
         PyListObject* matrix_line = PyList_New(m);
