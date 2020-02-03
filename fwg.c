@@ -30,12 +30,14 @@ PyListObject* fast_wasserstein_gram(
         PyListObject* matrix_line = PyList_New(m);
         PyList_SET_ITEM(gram, i, matrix_line);
 
+        PyListObject* embedding_i = PyList_GetItem(embeddings_in, i);
+        int size_i = (int) PyList_Size(embedding_i);
+
         for (j=0; j<m; j++) {
 
-            PyListObject* embedding_i = PyList_GetItem(embeddings_in, i);
+            
             PyListObject* embedding_j = PyList_GetItem(embeddings_out, j);
 
-            int size_i = (int) PyList_Size(embedding_i);
             int size_j = (int) PyList_Size(embedding_j);
 
             int u = size_i + size_j;
