@@ -16,6 +16,6 @@ if __name__ == "__main__":
     print(embeddings_in)
     print(embeddings_out)
 
-    gram = fwg.fwg(embeddings_in, embeddings_out, 37, 0.02)
+    gram = fwg.fwg(embeddings_in, embeddings_out, 3, 0.02)
 
     print(np.matrix(gram))

@@ -7,7 +7,6 @@ fwg_call(PyObject *self, PyObject *args)
 
     static char *kwlist[] = {"embeddings_in", "embeddings_out", "M", NULL};
 
-    int M;
 
     PyListObject* pyo_embeddings_in = PyTuple_GetItem(args, 0);
     PyListObject* pyo_embeddings_out = PyTuple_GetItem(args, 1);
@@ -28,7 +27,7 @@ fwg_call(PyObject *self, PyObject *args)
     PyListObject* gram = fast_wasserstein_gram(
         pyo_embeddings_in,
         pyo_embeddings_out,
-        M,
+        m,
         sigma
     );
 

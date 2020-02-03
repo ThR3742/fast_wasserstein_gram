@@ -1,5 +1,15 @@
 #include <Python.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static int compare (void const *a, void const *b)
+{
+   double const *pa = a;
+   double const *pb = b;
+   return *pa - *pb;
+}
+
 
 PyListObject* fast_wasserstein_gram(
     PyListObject* embeddings_in,
@@ -10,11 +20,9 @@ PyListObject* fast_wasserstein_gram(
  {
     int n = (int) PyList_Size(embeddings_in);
     int m = (int) PyList_Size(embeddings_out);
-    int i;
+    int i, j, k, l;
 
     PyListObject* gram = PyList_New(n);
-
-    int j, k;
 
     for (i=0; i<n; i++) {
 
@@ -31,7 +39,7 @@ PyListObject* fast_wasserstein_gram(
 
             int u = size_i + size_j;
 
-            // printf("Computing product between %d and %d\n", size_i, size_j);
+            // printf("[%d, %d] Computing product between %d and %d\n", i, j, size_i, size_j);
 
             double* vec1_1 = (double *)malloc(u * sizeof(double));
             double* vec1_2 = (double *)malloc(u * sizeof(double));
@@ -64,24 +72,25 @@ PyListObject* fast_wasserstein_gram(
 
             for (k=0; k<M; k++) {
 
-                
+                double* v1 = (double *)malloc(u * sizeof(double));
+                double* v2 = (double *)malloc(u * sizeof(double));
+                for (l=0; l<u; l++) {
+                    v1[l] = (vec1_1[l] + vec1_2[l])*theta;
+                    v2[l] = (vec2_1[l] + vec2_2[l])*theta;
+                }
+                qsort(v1, u, sizeof(double), compare);
+                qsort(v2, u, sizeof(double), compare);
+
+                double norm1 = 0.0;
+                for (l=0; l<u; l++) {
+                    norm1 += abs(v1[l] - v2[l]);
+                }
+
+                sw = sw + s * norm1;
+                theta = theta + s;
             }
-           /**
-            for k in range(M):
-                v1 = [np.dot(pt1, (theta, theta)) for pt1 in vec1]
-                v2 = [np.dot(pt2, (theta, theta)) for pt2 in vec2]
-                v1.sort()
-                v2.sort()
-                val = np.asarray(v1) - np.asarray(v2)
-                val[np.isnan(val)] = 0.0
-                # val = np.nan_to_num(np.asarray(v1) - np.asarray(v2))
-                sw = sw + s * np.linalg.norm(val, ord=1)
-                theta = theta + s
-                # logger.info(f"End Sliced Wass. Kernel")
-                # print("Run :", i, " and sw =", (1/np.pi)*sw)
-            gram[i, j] = np.exp(-(1 / np.pi) * sw / (2 * sigma ** 2))
-        **/
-            double val = 0.0;
+            
+            double val = exp(-(1 / M_PI) * sw / pow(2 * sigma, 2));
 
             PyList_SET_ITEM(matrix_line, j, PyFloat_FromDouble(val));
         }
