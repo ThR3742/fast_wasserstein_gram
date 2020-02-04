@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <thread>
+#include <vector>
 #include <future>
 
 #define min(a,b) (a<=b?a:b)
@@ -120,23 +121,29 @@ PyListObject* fast_wasserstein_distances_single_thread(
     int m = (int) PyList_Size((PyObject*)embeddings_out);
     int i, j;
 
+    std::vector<std::future<double>> my_futures;
+
     PyListObject* gram = (PyListObject *) PyList_New(n*m);
 
     for (i=0; i<n; i++) {
         PyListObject* embedding_i = (PyListObject*) PyList_GetItem((PyObject *)embeddings_in, i);
         int size_i = (int) PyList_Size((PyObject*)embedding_i);
 
+        my_futures.clear();
+
         for (j=0; j<m; j++) {
             PyListObject* embedding_j = (PyListObject*) PyList_GetItem((PyObject *)embeddings_out, j);
             int size_j = (int) PyList_Size((PyObject*)embedding_j);
 
-            std::future<double> val = std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
+            my_futures.push_back(std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
                 embedding_j,
                 size_i,
                 size_j,
-                M);
- 
-            PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(val.get()));
+                M));
+        }
+
+        for (j=0; j<m; j++) {
+            PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(my_futures[j].get()));
         }
     }
 
