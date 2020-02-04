@@ -13,13 +13,13 @@ fwd_call(PyObject *self, PyObject *args)
     long m = PyLong_AsLong(pyo_m);
     //long max_jobs = PyLong_AsLong(pyo_max_jobs);
 
-    PyListObject* gram = fast_wasserstein_distances_single_thread(
+    PyObject* gram = fast_wasserstein_distances(
         (PyListObject*) pyo_embeddings_in,
         (PyListObject*) pyo_embeddings_out,
         m
     );
 
-    return (PyObject *) gram;
+    return gram;
 }
 
 static PyMethodDef FwgMethods[] = {

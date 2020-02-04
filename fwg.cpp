@@ -3,17 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
-#include <pthread.h>
 
 #include <iostream>
 #include <thread>
+#include <algorithm>
 #include <vector>
 #include <future>
 
 #define min(a,b) (a<=b?a:b)
 #define max(a,b) (a>=b?a:b)
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static int compare (void const *a, void const *b)
 {
@@ -41,10 +40,10 @@ double sliced_wasserstein_distance(
     int k, l;
     int u = size_i + size_j;
 
-    double* vec1_1 = (double *)malloc(u * sizeof(double));
-    double* vec1_2 = (double *)malloc(u * sizeof(double));
-    double* vec2_1 = (double *)malloc(u * sizeof(double));
-    double* vec2_2 = (double *)malloc(u * sizeof(double));
+    std::vector<double> vec1_1(u);
+    std::vector<double> vec1_2(u);
+    std::vector<double> vec2_1(u);
+    std::vector<double> vec2_2(u);
 
     for (k=0; k<size_i; k++) {
         PyTupleObject* pt = (PyTupleObject *) PyList_GetItem((PyObject *)embedding_i, k);
@@ -73,15 +72,14 @@ double sliced_wasserstein_distance(
 
     for (k=0; k<M; k++) {
     
-        double* v1 = (double *)malloc(u * sizeof(double));
-        double* v2 = (double *)malloc(u * sizeof(double));
+        std::vector<double> v1(u);
+        std::vector<double> v2(u);
         for (l=0; l<u; l++) {
             v1[l] = vec1_1[l] * cos(theta) + vec1_2[l] * sin(theta);
             v2[l] = vec2_1[l] * cos(theta) + vec2_2[l] * sin(theta);
         }
-        
-        qsort(v1, u, sizeof(double), compare);
-        qsort(v2, u, sizeof(double), compare);
+        std::sort(v1.begin(), v1.end());
+        std::sort(v2.begin(), v2.end());
 
         double norm1 = 0.0;
         for (l=0; l<u; l++) {
@@ -94,36 +92,28 @@ double sliced_wasserstein_distance(
             }
         }
 
-        free(v1);
-        free(v2);
-
         sw = sw + s * norm1;
         theta = theta + s;
     }
-
-    free(vec1_1);
-    free(vec1_2);
-    free(vec2_1);
-    free(vec2_2);
     
     return (1 / M_PI) * sw;
 
 }
 
-PyListObject* fast_wasserstein_distances_single_thread(
+PyObject* fast_wasserstein_distances(
     PyListObject* embeddings_in,
     PyListObject* embeddings_out,
     int M
 )
  {
-
     int n = (int) PyList_Size((PyObject*)embeddings_in);
     int m = (int) PyList_Size((PyObject*)embeddings_out);
+
+    PyObject* gram = PyList_New(n*m);
+
     int i, j;
 
     std::vector<std::future<double>> my_futures;
-
-    PyListObject* gram = (PyListObject *) PyList_New(n*m);
 
     for (i=0; i<n; i++) {
         PyListObject* embedding_i = (PyListObject*) PyList_GetItem((PyObject *)embeddings_in, i);
