@@ -17,7 +17,7 @@ fwd_call(PyObject *self, PyObject *args)
     int n_size = (int) PyList_Size(pyo_embeddings_in);
     int m_size = (int) PyList_Size(pyo_embeddings_out);
 
-    PyListObject* gram = fast_wasserstein_distance(
+    PyListObject* gram = fast_wasserstein_distances(
         pyo_embeddings_in,
         pyo_embeddings_out,
         m
