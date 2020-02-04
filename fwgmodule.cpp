@@ -5,27 +5,21 @@ static PyObject *
 fwd_call(PyObject *self, PyObject *args)
 {
 
-    static char *kwlist[] = {"embeddings_in", "embeddings_out", "M", NULL};
-
-
-    PyListObject* pyo_embeddings_in = PyTuple_GetItem(args, 0);
-    PyListObject* pyo_embeddings_out = PyTuple_GetItem(args, 1);
+    PyObject* pyo_embeddings_in = PyTuple_GetItem(args, 0);
+    PyObject* pyo_embeddings_out = PyTuple_GetItem(args, 1);
     PyObject* pyo_m = PyTuple_GetItem(args, 2);
     //PyObject* pyo_max_jobs = PyTuple_GetItem(args, 3);
 
     long m = PyLong_AsLong(pyo_m);
     //long max_jobs = PyLong_AsLong(pyo_max_jobs);
 
-    int n_size = (int) PyList_Size(pyo_embeddings_in);
-    int m_size = (int) PyList_Size(pyo_embeddings_out);
-
     PyListObject* gram = fast_wasserstein_distances_single_thread(
-        pyo_embeddings_in,
-        pyo_embeddings_out,
+        (PyListObject*) pyo_embeddings_in,
+        (PyListObject*) pyo_embeddings_out,
         m
     );
 
-    return gram;
+    return (PyObject *) gram;
 }
 
 static PyMethodDef FwgMethods[] = {

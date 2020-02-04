@@ -1,10 +1,7 @@
 from distutils.core import setup, Extension
 import sysconfig
 
-extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
-extra_compile_args += ["-O2"]
-
 # the c++ extension module
-extension_mod = Extension("fwg", ["fwgmodule.c", "fwg.c"], extra_compile_args=extra_compile_args)
+extension_mod = Extension("fwg", ["fwgmodule.cpp", "fwg.cpp"], language="c++")
 
 setup(name = "fwg", ext_modules=[extension_mod])
