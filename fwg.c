@@ -25,6 +25,17 @@ static int compare (void const *a, void const *b)
    return *pa < *pb ? -1 : 1;
 }
 
+int cmpfunc (const void * a, const void * b)
+{
+  if (*(double*)a > *(double*)b)
+    return 1;
+  else if (*(double*)a < *(double*)b)
+    return -1;
+  else
+    return 0;  
+}
+
+
 double sliced_wasserstein_distance(
     PyListObject* embedding_i,
     PyListObject* embedding_j,
@@ -67,7 +78,7 @@ double sliced_wasserstein_distance(
     double s = M_PI / M;
 
     
-    pthread_mutex_lock(&lock);
+    //pthread_mutex_lock(&lock);
     for (k=0; k<M; k++) {
     
         double* v1 = (double *)malloc(u * sizeof(double));
@@ -77,8 +88,8 @@ double sliced_wasserstein_distance(
             v2[l] = vec2_1[l] * cos(theta) + vec2_2[l] * sin(theta);
         }
         
-        qsort(v1, u, sizeof(double), compare);
-        qsort(v2, u, sizeof(double), compare);
+        qsort(v1, u, sizeof(double), cmpfunc);
+        qsort(v2, u, sizeof(double), cmpfunc);
 
         double norm1 = 0.0;
         for (l=0; l<u; l++) {
@@ -96,7 +107,7 @@ double sliced_wasserstein_distance(
         
         
     }
-    pthread_mutex_unlock(&lock);
+    //pthread_mutex_unlock(&lock);
 
     
 
@@ -263,20 +274,13 @@ PyListObject* fast_wasserstein_distances_single_thread(
     int m = (int) PyList_Size(embeddings_out);
     int i, j;
 
-    PyListObject* gram = PyList_New(n);
+    PyListObject* gram = PyList_New(n*m);
 
     for (i=0; i<n; i++) {
-
-        PyListObject* matrix_line = PyList_New(m);
-        PyList_SET_ITEM(gram, i, matrix_line);
-
         PyListObject* embedding_i = PyList_GetItem(embeddings_in, i);
         int size_i = (int) PyList_Size(embedding_i);
-
         for (j=0; j<m; j++) {
-
             PyListObject* embedding_j = PyList_GetItem(embeddings_out, j);
-
             int size_j = (int) PyList_Size(embedding_j);
 
             double val = sliced_wasserstein_distance(
@@ -287,7 +291,7 @@ PyListObject* fast_wasserstein_distances_single_thread(
                 M
             );
 
-            PyList_SET_ITEM(matrix_line, j, PyFloat_FromDouble(val));
+            PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(val));
         }
     }
 
