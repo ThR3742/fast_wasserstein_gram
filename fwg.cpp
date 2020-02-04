@@ -5,6 +5,10 @@
 #include <float.h>
 #include <pthread.h>
 
+#include <iostream>
+#include <thread>
+#include <future>
+
 #define min(a,b) (a<=b?a:b)
 #define max(a,b) (a>=b?a:b)
 
@@ -66,8 +70,6 @@ double sliced_wasserstein_distance(
     double theta = - M_PI / 2.0;
     double s = M_PI / M;
 
-    
-    //pthread_mutex_lock(&lock);
     for (k=0; k<M; k++) {
     
         double* v1 = (double *)malloc(u * sizeof(double));
@@ -91,11 +93,17 @@ double sliced_wasserstein_distance(
             }
         }
 
+        free(v1);
+        free(v2);
+
         sw = sw + s * norm1;
         theta = theta + s;
-        
-        
     }
+
+    free(vec1_1);
+    free(vec1_2);
+    free(vec2_1);
+    free(vec2_2);
     
     return (1 / M_PI) * sw;
 
@@ -107,6 +115,7 @@ PyListObject* fast_wasserstein_distances_single_thread(
     int M
 )
  {
+
     int n = (int) PyList_Size((PyObject*)embeddings_in);
     int m = (int) PyList_Size((PyObject*)embeddings_out);
     int i, j;
@@ -116,19 +125,18 @@ PyListObject* fast_wasserstein_distances_single_thread(
     for (i=0; i<n; i++) {
         PyListObject* embedding_i = (PyListObject*) PyList_GetItem((PyObject *)embeddings_in, i);
         int size_i = (int) PyList_Size((PyObject*)embedding_i);
+
         for (j=0; j<m; j++) {
             PyListObject* embedding_j = (PyListObject*) PyList_GetItem((PyObject *)embeddings_out, j);
             int size_j = (int) PyList_Size((PyObject*)embedding_j);
 
-            double val = sliced_wasserstein_distance(
-                embedding_i,
+            std::future<double> val = std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
                 embedding_j,
                 size_i,
                 size_j,
-                M
-            );
-
-            PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(val));
+                M);
+ 
+            PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(val.get()));
         }
     }
 
