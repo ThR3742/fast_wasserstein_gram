@@ -14,21 +14,6 @@
 #define max(a,b) (a>=b?a:b)
 
 
-static int compare (void const *a, void const *b)
-{
-   double const *pa = (const double *) a;
-   double const *pb = (const double *) b;
-
-   if (isinf(*pa)) {
-       return *pa > 0 ? 1 : -1;
-   }
-   if (isinf(*pb)) {
-       return *pb > 0 ? -1 : 1;
-   }
-
-   return *pa < *pb ? -1 : 1;
-}
-
 double sliced_wasserstein_distance(
     PyListObject* embedding_i,
     PyListObject* embedding_j,
