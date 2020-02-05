@@ -15,21 +15,6 @@
 #define min(a,b) (a<=b?a:b)
 #define max(a,b) (a>=b?a:b)
 
-
-
-
-std::vector<std::pair<int, int>> list_chunks(int size_t, int nb_chunks) {
-    int size_chunk = max(ceil((double) size_t / nb_chunks), 1);
-    std::vector<std::pair<int, int>> ret(nb_chunks);
-    int c;
-    for (c=0; c<nb_chunks; c++) {
-        ret[c] =  {c*size_chunk, min((c+1)*size_chunk, size_t)};
-        // printf("Chunk [%d, %d]\n", ret[c].first, ret[c].second);
-    }
-    return ret;
-}
-
-
 double sliced_wasserstein_distance(
     PyListObject* embedding_i,
     PyListObject* embedding_j,
@@ -113,33 +98,32 @@ PyObject* fast_wasserstein_distances(
     PyObject* gram = PyList_New(n*m);
 
     std::vector<std::future<double>> my_futures;
-    std::vector<std::pair<int, int>> chunks = list_chunks(m, 16);
 
     for (int i=0; i<n; ++i) {
         PyListObject* embedding_i = (PyListObject*) PyList_GetItem((PyObject *)embeddings_in, i);
         int size_i = (int) PyList_Size((PyObject*)embedding_i);
 
-        for (int c=0; c<chunks.size(); ++c) {
 
-            my_futures.clear();
+        my_futures.clear();
 
-            for (int j=chunks[c].first; j<chunks[c].second; ++j) {
-                PyListObject* embedding_j = (PyListObject*) PyList_GetItem((PyObject *)embeddings_out, j);
-                int size_j = (int) PyList_Size((PyObject*)embedding_j);
+        for (int j=0; j<m; ++j) {
+            PyListObject* embedding_j = (PyListObject*) PyList_GetItem((PyObject *)embeddings_out, j);
+            int size_j = (int) PyList_Size((PyObject*)embedding_j);
 
-                my_futures.push_back(std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
-                    embedding_j,
-                    size_i,
-                    size_j,
-                    M));
-            }
-
-            for (int j=chunks[c].first; j<chunks[c].second; ++j) {
-                PyList_SET_ITEM(gram, i*n+j, PyFloat_FromDouble(my_futures[j-chunks[c].first].get()));
-            }
-
+            my_futures.push_back(std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
+                embedding_j,
+                size_i,
+                size_j,
+                M));
         }
+
+        for (int j=0; j<m; ++j) {
+            PyList_SET_ITEM(gram, i*m+j, PyFloat_FromDouble(my_futures[j].get()));
+        }
+
     }
+
+    // printf("Job done\n");
 
     return gram;
 

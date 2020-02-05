@@ -15,6 +15,7 @@ if __name__ == "__main__":
 
     print(np.matrix(distances))
 
-    distances = fwg.fwd(embeddings*10, embeddings*10, 50)
-
-    print(np.shape(np.matrix(distances)))
+    for _ in range(10):
+        distances = fwg.fwd(embeddings*5, embeddings*10, 50)
+        print(len(distances))
+        print(np.shape(np.matrix(distances)))
