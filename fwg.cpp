@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <numpy/arrayobject.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,8 +124,14 @@ PyObject* fast_wasserstein_distances(
 
     }
 
-    // printf("Job done\n");
+    import_array();
+    PyArrayObject* gramNumpy = (PyArrayObject*) PyArray_FromAny(gram, PyArray_DescrFromType(NPY_FLOAT64), 1, 1, NPY_ARRAY_DEFAULT, NULL);
 
-    return gram;
-
+    npy_intp* shape = (npy_intp*)malloc(2*sizeof(npy_intp));
+    shape[0] = n;
+    shape[1] = m;
+    PyArray_Dims dims = {shape, 2};
+    PyObject* gramNumpyReshape = PyArray_Newshape(gramNumpy, &dims, NPY_CORDER);
+    free(shape);
+    return gramNumpyReshape;
 }

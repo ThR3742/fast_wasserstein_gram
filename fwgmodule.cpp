@@ -4,7 +4,6 @@
 static PyObject *
 fwd_call(PyObject *self, PyObject *args)
 {
-
     PyObject* pyo_embeddings_in = PyTuple_GetItem(args, 0);
     PyObject* pyo_embeddings_out = PyTuple_GetItem(args, 1);
     PyObject* pyo_m = PyTuple_GetItem(args, 2);
