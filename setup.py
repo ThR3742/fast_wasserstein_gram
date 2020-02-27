@@ -4,7 +4,7 @@ import numpy
 
 # the c++ extension module
 extension_mod = Extension("fwg", ["fwgmodule.cpp", "fwg.cpp"],
-language="c++", extra_compile_args=['-std=c++11', '-O2'], include_dirs=[numpy.get_include()])
+language="c++", extra_compile_args=['-std=c++11', '-O0', '-g'], include_dirs=[numpy.get_include()])
 
 setup(
     name = "fwg",

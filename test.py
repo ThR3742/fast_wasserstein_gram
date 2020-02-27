@@ -15,6 +15,13 @@ if __name__ == "__main__":
 
     print(np.matrix(distances))
 
+    expected = np.matrix([[ 0., 32.12016921, 0.],
+                         [32.12016921, 0., 32.12016921],
+                         [0., 32.12016921, 0.]])
+
+    assert np.isclose(np.linalg.norm(np.matrix(distances)-expected), 0, 1e-7)
+
+
     for _ in range(10):
         distances = fwg.fwd(embeddings*3, embeddings*2, 50)
     print(distances)

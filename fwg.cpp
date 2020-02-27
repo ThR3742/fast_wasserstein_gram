@@ -2,6 +2,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <math.h>
+#include "fwg.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
@@ -18,12 +19,13 @@
 #define max(a,b) (a>=b?a:b)
 
 double sliced_wasserstein_distance(
-    PyListObject* embedding_i,
-    PyListObject* embedding_j,
-    int size_i,
-    int size_j,
+    embedding_t embedding_i,
+    embedding_t embedding_j,
     int M
 ) {
+
+    int size_i = embedding_i.size();
+    int size_j = embedding_j.size();
 
     int k, l;
     int u = size_i + size_j;
@@ -34,9 +36,8 @@ double sliced_wasserstein_distance(
     std::vector<double> vec2_2(u);
 
     for (k=0; k<size_i; k++) {
-        PyTupleObject* pt = (PyTupleObject *) PyList_GetItem((PyObject *)embedding_i, k);
-        double birth = PyFloat_AS_DOUBLE(PyTuple_GetItem((PyObject *)pt, 0));
-        double death = PyFloat_AS_DOUBLE(PyTuple_GetItem((PyObject *)pt, 1));
+        double birth = embedding_i[k].first;
+        double death = embedding_i[k].second;
         vec1_1[k] = birth;
         vec1_2[k] = death;
         vec2_1[k] = (birth+death)/2.0;
@@ -44,9 +45,8 @@ double sliced_wasserstein_distance(
     }
 
     for (k=0; k<size_j; k++) {
-        PyTupleObject* pt = (PyTupleObject *) PyList_GetItem((PyObject *)embedding_j, k);
-        double birth = PyFloat_AS_DOUBLE(PyTuple_GetItem((PyObject *)pt, 0));
-        double death = PyFloat_AS_DOUBLE(PyTuple_GetItem((PyObject *)pt, 1));
+        double birth = embedding_j[k].first;
+        double death = embedding_j[k].second;
         vec2_1[size_i+k] = birth;
         vec2_2[size_i+k] = death;
         vec1_1[size_i+k] = (birth+death)/2.0;
@@ -89,33 +89,28 @@ double sliced_wasserstein_distance(
 }
 
 PyObject* fast_wasserstein_distances(
-    PyListObject* embeddings_in,
-    PyListObject* embeddings_out,
+    std::vector<embedding_t> embeddings_in,
+    std::vector<embedding_t> embeddings_out,
     int M
 )
  {
-    int n = (int) PyList_Size((PyObject*)embeddings_in);
-    int m = (int) PyList_Size((PyObject*)embeddings_out);
+    int n = embeddings_in.size();
+    int m = embeddings_out.size();
 
     PyObject* gram = PyList_New(n*m);
 
     std::vector<std::future<double>> my_futures;
 
     for (int i=0; i<n; ++i) {
-        PyListObject* embedding_i = (PyListObject*) PyList_GetItem((PyObject *)embeddings_in, i);
-        int size_i = (int) PyList_Size((PyObject*)embedding_i);
-
+        embedding_t embedding_i = embeddings_in[i];
 
         my_futures.clear();
 
         for (int j=0; j<m; ++j) {
-            PyListObject* embedding_j = (PyListObject*) PyList_GetItem((PyObject *)embeddings_out, j);
-            int size_j = (int) PyList_Size((PyObject*)embedding_j);
+            embedding_t embedding_j = embeddings_out[j];
 
             my_futures.push_back(std::async(std::launch::async, sliced_wasserstein_distance, embedding_i,
                 embedding_j,
-                size_i,
-                size_j,
                 M));
         }
 
