@@ -13,5 +13,4 @@ PyObject* fast_wasserstein_distances(
 );
 
 
-
 #endif //FWG_H
