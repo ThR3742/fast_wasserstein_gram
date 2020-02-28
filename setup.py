@@ -8,7 +8,7 @@ language="c++", extra_compile_args=['-std=c++11', '-O0', '-g'], include_dirs=[nu
 
 setup(
     name = "fwg",
-    version="0.1.0",
+    version="0.2.0",
     author="Thomas Ricatte",
     description="Fast sliced wasserstein distance matrix computation",
     ext_modules=[extension_mod]
