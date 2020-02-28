@@ -38,9 +38,16 @@ def test_inf():
 
     print(distances)
 
+    expected = np.matrix([[ 0., 5.46410162, 10.01751963, np.inf],
+                          [ 5.46410162, 0., 4.55341801, np.inf],
+                          [10.01751963, 4.55341801, 0., np.inf],
+                          [np.inf, np.inf, np.inf, 0.]])
+
+    assert np.isclose(np.linalg.norm(np.nan_to_num(np.matrix(distances)-expected)), 0, 1e-7) 
+
 if __name__ == "__main__":
 
-    # test_simple_cases()
+    test_simple_cases()
 
     test_inf()
 
